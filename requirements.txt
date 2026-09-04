@@ -1,0 +1,7 @@
+#зависимости
+django==5.2.6
+djangorestframework==3.16.1
+django-cors-headers
+pyotp
+pandas
+openpyxl
