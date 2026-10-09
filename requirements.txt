@@ -5,3 +5,6 @@ django-cors-headers
 pyotp
 pandas
 openpyxl
+Pillow  # нужен для ImageField (без него manage.py check падает)
+gunicorn  # WSGI-сервер для деплоя на VPS
+whitenoise  # раздача статики в проде без nginx

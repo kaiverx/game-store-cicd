@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path#для работы с путями 
+import os#чтение переменных окружения (на сервере настройки задаются через env)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent# путь к текущему файлу
@@ -21,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent# путь к текущему 
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p2#iwg4a362hz@*kt91rip_k3+p=(!6u#fc^k%n$2axzrnf&+q'#секретный ключ для криптографии сессии токены куки сброс пародей 
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-p2#iwg4a362hz@*kt91rip_k3+p=(!6u#fc^k%n$2axzrnf&+q')#на сервере берётся из env, локально дефолтный
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True# режим отладки показывает ошибки в проде обязательно фалзе иначе данные о серваке утекут
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'#на сервере False через env; режим отладки показывает ошибки в проде обязательно фалзе иначе данные о серваке утекут
 
-ALLOWED_HOSTS = []# список доменов с которых разрешено обслуж сайт. разрешает локалхост в проде пишут реальный домен 
+ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]#на сервере IP/домен через env; список доменов с которых разрешено обслуж сайт. разрешает локалхост в проде пишут реальный домен 
 
 
 # Application definition
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',#добавляет cors заголовки
     'django.middleware.security.SecurityMiddleware',#заголовки безопастности https
+    'whitenoise.middleware.WhiteNoiseMiddleware',#раздача статики (админка, DRF) в проде без nginx
     'django.contrib.sessions.middleware.SessionMiddleware',#подключает сессии
     'django.middleware.common.CommonMiddleware',#служебное 
     'django.middleware.csrf.CsrfViewMiddleware',#защита от csrf атак(проверка токена в формах)
@@ -82,7 +84,7 @@ WSGI_APPLICATION = 'app.wsgi.application'#
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('DJANGO_DB_PATH', BASE_DIR / 'db.sqlite3'),#на сервере бд лежит вне папки релиза
     }
 }
 
@@ -122,6 +124,7 @@ USE_TZ = True#хранение дат в бд с уч таймзон
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'#префикс по которому статистика раздаётся
+STATIC_ROOT = os.environ.get('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles')#куда collectstatic собирает статику
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
